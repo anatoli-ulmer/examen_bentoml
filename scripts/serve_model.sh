@@ -1,0 +1,1 @@
+bentoml serve service:model_service --reload
