@@ -61,10 +61,10 @@ def load_latest_admission_tag():
 admission_model_tag = str(load_latest_admission_tag()).split(":")[0]
 
 # Get the model from the Model Store
-accidents_rf_runner = bentoml.sklearn.get(f"{admission_model_tag}:latest").to_runner()
+model_runner = bentoml.sklearn.get(f"{admission_model_tag}:latest").to_runner()
 
 # Create a service API
-model_service = bentoml.Service(f"{admission_model_tag}_service", runners=[accidents_rf_runner])
+model_service = bentoml.Service(f"{admission_model_tag}_service", runners=[model_runner])
 
 # Add the JWTAuthMiddleware to the service
 model_service.add_asgi_middleware(JWTAuthMiddleware)
@@ -92,15 +92,10 @@ async def classify(input_data: InputModel, ctx: bentoml.Context) -> dict:
     user = request.state.user if hasattr(request.state, 'user') else None
 
     # Convert the input data to a numpy array
-    input_series = np.array([input_data.place, input_data.catu, input_data.sexe, input_data.secu1,
-                             input_data.year_acc, input_data.victim_age, input_data.catv, input_data.obsm,
-                             input_data.motor, input_data.catr, input_data.circ, input_data.surf,
-                             input_data.situ, input_data.vma, input_data.jour, input_data.mois,
-                             input_data.lum, input_data.dep, input_data.com, input_data.agg_,
-                             input_data.int, input_data.atm, input_data.col, input_data.lat,
-                             input_data.long, input_data.hour, input_data.nb_victim, input_data.nb_vehicules])
+    input_series = np.array([input_data.gre_score, input_data.toefl_score, input_data.university_rating, input_data.sop,
+                             input_data.lor, input_data.cgpa, input_data.research])
 
-    result = await accidents_rf_runner.predict.async_run(input_series.reshape(1, -1))
+    result = await model_runner.predict.async_run(input_series.reshape(1, -1))
 
     return {
         "prediction": result.tolist(),
