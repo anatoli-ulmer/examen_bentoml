@@ -6,6 +6,7 @@ from starlette.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 import jwt
 from datetime import datetime, timedelta
+import json
 
 # Secret key and algorithm for JWT authentication
 JWT_SECRET_KEY = "your_jwt_secret_key_here"
@@ -17,9 +18,11 @@ USERS = {
     "user456": "password456"
 }
 
+predict_route = "predict"
+
 class JWTAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        if request.url.path == "/v1/models/rf_classifier/predict":
+        if request.url.path == f"/{predict_route}":
             token = request.headers.get("Authorization")
             if not token:
                 return JSONResponse(status_code=401, content={"detail": "Missing authentication token"})
@@ -64,7 +67,7 @@ admission_model_tag = str(load_latest_admission_tag()).split(":")[0]
 model_runner = bentoml.sklearn.get(f"{admission_model_tag}:latest").to_runner()
 
 # Create a service API
-model_service = bentoml.Service(f"{admission_model_tag}_service", runners=[model_runner])
+model_service = bentoml.Service(f"ulmer_admission_service", runners=[model_runner])
 
 # Add the JWTAuthMiddleware to the service
 model_service.add_asgi_middleware(JWTAuthMiddleware)
@@ -79,13 +82,15 @@ def login(credentials: dict) -> dict:
         token = create_jwt_token(username)
         return {"token": token}
     else:
-        return JSONResponse(status_code=401, content={"detail": "Invalid credentials"})
+        # Convert JSONResponse to dict before returning
+        response = JSONResponse(status_code=401, content={"detail": "Invalid credentials"})
+        return json.loads(response.body.decode("utf-8"))
 
 # Create an API endpoint for the service
 @model_service.api(
     input=JSON(pydantic_model=InputModel),
     output=JSON(),
-    route='predict'
+    route=predict_route
 )
 async def classify(input_data: InputModel, ctx: bentoml.Context) -> dict:
     request = ctx.request
@@ -103,8 +108,8 @@ async def classify(input_data: InputModel, ctx: bentoml.Context) -> dict:
     }
 
 # Function to create a JWT token
-def create_jwt_token(user_id: str):
-    expiration = datetime.utcnow() + timedelta(hours=1)
+def create_jwt_token(user_id: str, expiration_time: timedelta=timedelta(hours=1)):
+    expiration = datetime.utcnow() + expiration_time
     payload = {
         "sub": user_id,
         "exp": expiration
