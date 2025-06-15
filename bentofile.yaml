@@ -1,0 +1,24 @@
+service: "src.service:model_service"
+description: "Predict the chance of admission of a student in a university"
+labels:
+  owner: "anatoli-ulmer"
+  project: "Admissions Prediction"
+
+docker:
+  dockerfile_template: "./Dockerfile.template"
+  base_image: python:3.8-slim
+
+include:
+  - src/
+  - data/
+
+python:
+  packages:
+    - bentoml==1.3.5
+    - numpy
+    - pandas
+    - pydantic
+    - PyJWT
+    - Requests
+    - scikit_learn
+    - starlette
