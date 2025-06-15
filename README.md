@@ -33,13 +33,28 @@ Here is how the solution is structured:
     └── test_service.py
 ```
 
-## Start serving with bentoml
+### Download raw data
+```bash
+curl -o data/raw/admission.csv https://assets-datascientest.s3.eu-west-1.amazonaws.com/MLOPS/bentoml/admission.csv
+```
+
+### Preprocess data
+```bash
+python src/prepare_data.py
+```
+
+### Training model and saving it to bento store
+```bash
+python src/train_model.py
+```
+
+### Start serving trained model with bentoml
 
 ```bash
 ./scripts/serve_model.sh
 ```
 
-## How to create and run docker container
+### How to create and run docker container
 
 ```bash
 bentoml build
@@ -47,20 +62,20 @@ bentoml containerize ulmer_admission_service:latest
 docker run -p 3000:3000 $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)
 ```
 
-## Compress latest docker container to tar file for distribution
+### Compress latest docker container to tar file for distribution
 
 ```bash
 docker save -o bento_image.tar $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)
 ```
 
-## Load docker image from tar file (if existent) and run it
+### Load docker image from tar file (if existent) and run it
 
 ```bash
 docker load -i bento_image.tar
 docker run -p 3000:3000 $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)
 ```
 
-## Run unit tests in a second terminal (service must be running in the first terminal)
+### Run unit tests in a second terminal (service must be running in the first terminal)
 
 ```bash
 pytest
