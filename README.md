@@ -1,28 +1,59 @@
-# Examen BentoML
+# BentoML Exam Solution
 
-Ce repertoire contient l'architecture basique afin de rendre l'évaluation pour l'examen BentoML.
+This directory contains my solution for the DataScientest BentoML exam.
 
-Vous êtes libres d'ajouter d'autres dossiers ou fichiers si vous jugez utile de le faire.
-
-Voici comment est construit le dossier de rendu de l'examen:
+Here is how the solution is structured:
 
 ```bash       
-├── examen_bentoml          
-│   ├── data       
-│   │   ├── processed      
-│   │   └── raw           
-│   ├── models      
-│   ├── src       
-│   └── README.md
+├── Dockerfile.template
+├── LICENSE
+├── README.md
+├── bento_image.tar
+├── bentofile.yaml
+├── data
+│   ├── processed
+│   │   ├── X_test.csv
+│   │   ├── X_train.csv
+│   │   ├── y_test.csv
+│   │   └── y_train.csv
+│   └── raw
+│       └── admissions.csv
+├── models
+├── pytest.ini
+├── requirements.txt
+├── scripts
+│   ├── download_raw.sh
+│   ├── latest_docker_to_tar.sh
+│   └── serve_model.sh
+├── src
+│   ├── prepare_data.py
+│   ├── service.py
+│   └── train_model.py
+└── tests
+    └── test_service.py
 ```
 
-Afin de pouvoir commencer le projet vous devez suivre les étapes suivantes:
+## Start serving with bentoml
 
-- Forker le projet sur votre compte github
+`./scripts/serve_model.sh`
 
-- Cloner le projet sur votre machine
+## How to create and run docker container
 
-- Récuperer le jeu de données à partir du lien suivant: [Lien de téléchargement]( https://datascientest.s3-eu-west-1.amazonaws.com/examen_bentoml/admissions.csv)
+```bash
+bentoml build
+bentoml containerize ulmer_admission_service:latest
+docker run -p 3000:3000 $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)
+```
 
+## Compress latest docker container to tar file for distribution
 
-Bon travail!
+`docker save -o bento_image.tar $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)`
+
+## Load docker image from tar file (if existent) and run it
+
+`docker load -i bento_image.tar`
+`docker run -p 3000:3000 $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)`
+
+## Run unit tests in a second terminal (service must be running in the first terminal)
+
+`pytest`
