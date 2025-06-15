@@ -35,7 +35,9 @@ Here is how the solution is structured:
 
 ## Start serving with bentoml
 
-`./scripts/serve_model.sh`
+```bash
+./scripts/serve_model.sh
+```
 
 ## How to create and run docker container
 
@@ -47,13 +49,19 @@ docker run -p 3000:3000 $(docker images ulmer_admission_service --format '{{.Rep
 
 ## Compress latest docker container to tar file for distribution
 
-`docker save -o bento_image.tar $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)`
+```bash
+docker save -o bento_image.tar $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)
+```
 
 ## Load docker image from tar file (if existent) and run it
 
-`docker load -i bento_image.tar`
-`docker run -p 3000:3000 $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)`
+```bash
+docker load -i bento_image.tar
+docker run -p 3000:3000 $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)
+```
 
 ## Run unit tests in a second terminal (service must be running in the first terminal)
 
-`pytest`
+```bash
+pytest
+```
