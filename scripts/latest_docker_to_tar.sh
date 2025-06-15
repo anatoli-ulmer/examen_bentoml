@@ -1,0 +1,1 @@
+docker save -o bento_image.tar $(docker images ulmer_admission_service --format '{{.Repository}}:{{.Tag}}' | head -n 1)
